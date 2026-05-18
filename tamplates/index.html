@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTF Trading Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #00ff88;
+    --accent2: #ff3366;
+    --accent3: #ffaa00;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --win: #00ff88;
+    --loss: #ff3366;
+    --draw: #ffaa00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Filtros */
+  .filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  input[type="date"], select {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select option { background: var(--surface2); }
+
+  .btn-filter {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-filter:hover { opacity: 0.85; }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { color: var(--text); border-color: var(--text); }
+
+  /* Cards */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-color, var(--accent));
+  }
+
+  .card-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 12px;
+  }
+
+  .card-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--card-color, var(--text));
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .card-icon {
+    position: absolute;
+    top: 20px; right: 20px;
+    font-size: 24px;
+    opacity: 0.15;
+  }
+
+  /* Charts row */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chart-title span {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+  }
+
+  /* Pares table */
+  .pares-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .badge-win { background: rgba(0,255,136,0.15); color: var(--win); }
+  .badge-loss { background: rgba(255,51,102,0.15); color: var(--loss); }
+  .badge-draw { background: rgba(255,170,0,0.15); color: var(--draw); }
+  .badge-call { background: rgba(0,255,136,0.1); color: var(--win); }
+  .badge-put { background: rgba(255,51,102,0.1); color: var(--loss); }
+  .badge-gale { background: rgba(255,170,0,0.1); color: var(--draw); }
+
+  .asert-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .asert-fill {
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .asert-bg {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  /* Historial */
+  .historial-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .positive { color: var(--win); }
+  .negative { color: var(--loss); }
+  .neutral { color: var(--draw); }
+
+  @media (max-width: 768px) {
+    .charts-row, .pares-grid { grid-template-columns: 1fr; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <h1>PTF <span>Trading</span> Dashboard</h1>
+  </div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    <span id="last-update">Actualizando...</span>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters">
+  <span class="filter-label">Filtros:</span>
+  <div class="filter-group">
+    <span style="font-size:12px;color:var(--muted)">Desde</span>
+    <input type="date" id="fecha-desde">
+  </div>
+  <div class="filter-group">
+    <span style="font-size:12px;color:var(--muted)">Hasta</span>
+    <input type="date" id="fecha-hasta">
+  </div>
+  <div class="filter-group">
+    <select id="filtro-resultado">
+      <option value="todas">Todos los resultados</option>
+      <option value="ganada">Ganadas</option>
+      <option value="perdida">Perdidas</option>
+      <option value="empate">Empates</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <select id="filtro-naturaleza">
+      <option value="todas">Todas las entradas</option>
+      <option value="principal">Principal</option>
+      <option value="gale1">Gale 1</option>
+      <option value="gale2">Gale 2</option>
+    </select>
+  </div>
+  <button class="btn-filter" onclick="aplicarFiltros()">Aplicar</button>
+  <button class="btn-reset" onclick="resetFiltros()">Reset</button>
+</div>
+
+<!-- Cards -->
+<div class="cards-grid">
+  <div class="card" style="--card-color: #a78bfa">
+    <div class="card-icon">🔢</div>
+    <div class="card-label">Total Operaciones</div>
+    <div class="card-value" id="c-total">—</div>
+  </div>
+  <div class="card" style="--card-color: var(--win)">
+    <div class="card-icon">✅</div>
+    <div class="card-label">Ganadas</div>
+    <div class="card-value" id="c-ganadas">—</div>
+  </div>
+  <div class="card" style="--card-color: var(--loss)">
+    <div class="card-icon">❌</div>
+    <div class="card-label">Perdidas</div>
+    <div class="card-value" id="c-perdidas">—</div>
+  </div>
+  <div class="card" style="--card-color: var(--draw)">
+    <div class="card-icon">➖</div>
+    <div class="card-label">Empates</div>
+    <div class="card-value" id="c-empates">—</div>
+  </div>
+  <div class="card" style="--card-color: #60a5fa">
+    <div class="card-icon">🎯</div>
+    <div class="card-label">Asertividad</div>
+    <div class="card-value" id="c-asert">—</div>
+    <div class="card-sub">% de operaciones ganadoras</div>
+  </div>
+  <div class="card" style="--card-color: #f472b6">
+    <div class="card-icon">💰</div>
+    <div class="card-label">Volumen Operado</div>
+    <div class="card-value" id="c-volumen" style="font-size:20px">—</div>
+    <div class="card-sub">USD total invertido</div>
+  </div>
+  <div class="card" style="--card-color: var(--accent)">
+    <div class="card-icon">📈</div>
+    <div class="card-label">Capital Inicial</div>
+    <div class="card-value" id="c-capital-ini" style="font-size:20px">—</div>
+  </div>
+  <div class="card" style="--card-color: var(--accent)">
+    <div class="card-icon">💎</div>
+    <div class="card-label">Capital Actual</div>
+    <div class="card-value" id="c-capital-act" style="font-size:20px">—</div>
+    <div class="card-sub" id="c-ganancia-total"></div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-row">
+  <div class="chart-card">
+    <div class="chart-title">Evolución del Balance <span>diario</span></div>
+    <canvas id="chart-evolucion" height="120"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Distribución <span>resultados</span></div>
+    <canvas id="chart-dist" height="200"></canvas>
+  </div>
+</div>
+
+<!-- Pares -->
+<div class="pares-grid">
+  <div class="table-card">
+    <div class="chart-title">Efectividad por Par</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Par</th>
+          <th>Ops</th>
+          <th>Asertividad</th>
+          <th>P&G</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-pares">
+        <tr><td colspan="4" class="loading">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Ganancia por Par <span>top 8</span></div>
+    <canvas id="chart-pares" height="220"></canvas>
+  </div>
+</div>
+
+<!-- Historial -->
+<div class="historial-card">
+  <div class="chart-title" style="margin-bottom:20px">Historial de Operaciones <span>últimas 100</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Par</th>
+        <th>Dir</th>
+        <th>Naturaleza</th>
+        <th>Monto</th>
+        <th>Resultado</th>
+        <th>P&G</th>
+        <th>Balance Antes</th>
+        <th>Balance Después</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-historial">
+      <tr><td colspan="10" class="loading">Cargando...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+let chartEvol = null, chartDist = null, chartPares = null;
+
+function getParams() {
+  const p = new URLSearchParams();
+  const fd = document.getElementById('fecha-desde').value;
+  const fh = document.getElementById('fecha-hasta').value;
+  const r = document.getElementById('filtro-resultado').value;
+  const n = document.getElementById('filtro-naturaleza').value;
+  if (fd) p.append('fecha_desde', fd);
+  if (fh) p.append('fecha_hasta', fh);
+  if (r !== 'todas') p.append('resultado', r);
+  if (n !== 'todas') p.append('naturaleza', n);
+  return p.toString();
+}
+
+function fmt(n) { return '$' + parseFloat(n).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+async function loadStats() {
+  const res = await fetch('/api/stats?' + getParams());
+  const d = await res.json();
+  document.getElementById('c-total').textContent = d.total;
+  document.getElementById('c-ganadas').textContent = d.ganadas;
+  document.getElementById('c-perdidas').textContent = d.perdidas;
+  document.getElementById('c-empates').textContent = d.empates;
+  document.getElementById('c-asert').textContent = d.asertividad + '%';
+  document.getElementById('c-volumen').textContent = fmt(d.volumen);
+  document.getElementById('c-capital-ini').textContent = fmt(d.capital_inicial);
+  document.getElementById('c-capital-act').textContent = fmt(d.capital_actual);
+  const diff = d.capital_actual - d.capital_inicial;
+  const el = document.getElementById('c-ganancia-total');
+  el.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
+  el.className = 'card-sub ' + (diff >= 0 ? 'positive' : 'negative');
+
+  // Donut chart
+  if (chartDist) chartDist.destroy();
+  chartDist = new Chart(document.getElementById('chart-dist'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Ganadas', 'Perdidas', 'Empates'],
+      datasets: [{
+        data: [d.ganadas, d.perdidas, d.empates],
+        backgroundColor: ['rgba(0,255,136,0.8)', 'rgba(255,51,102,0.8)', 'rgba(255,170,0,0.8)'],
+        borderWidth: 0,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#6b6b80', font: { family: 'Space Mono', size: 11 } } }
+      },
+      cutout: '70%'
+    }
+  });
+}
+
+async function loadEvolucion() {
+  const res = await fetch('/api/evolucion?' + getParams());
+  const data = await res.json();
+  if (chartEvol) chartEvol.destroy();
+  chartEvol = new Chart(document.getElementById('chart-evolucion'), {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.dia),
+      datasets: [{
+        label: 'Balance',
+        data: data.map(d => d.balance),
+        borderColor: '#00ff88',
+        backgroundColor: 'rgba(0,255,136,0.05)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#00ff88',
+        pointRadius: 4
+      }, {
+        label: 'Ganancia del día',
+        data: data.map(d => d.ganancia),
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(167,139,250,0.05)',
+        tension: 0.4,
+        fill: false,
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#6b6b80', font: { family: 'Space Mono', size: 11 } } }
+      },
+      scales: {
+        x: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } },
+        y: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } }
+      }
+    }
+  });
+}
+
+async function loadPares() {
+  const res = await fetch('/api/pares?' + getParams());
+  const data = await res.json();
+  const tbody = document.getElementById('tabla-pares');
+  tbody.innerHTML = data.map(p => `
+    <tr>
+      <td style="font-weight:600;color:var(--text)">${p.par}</td>
+      <td>${p.total}</td>
+      <td>
+        <div class="asert-bar">
+          <span style="color:${p.asertividad >= 60 ? 'var(--win)' : p.asertividad >= 40 ? 'var(--draw)' : 'var(--loss)'};min-width:40px">${p.asertividad}%</span>
+          <div class="asert-bg"><div class="asert-fill" style="width:${p.asertividad}%;background:${p.asertividad >= 60 ? 'var(--win)' : p.asertividad >= 40 ? 'var(--draw)' : 'var(--loss)'}"></div></div>
+        </div>
+      </td>
+      <td class="${p.ganancia_total >= 0 ? 'positive' : 'negative'}">${p.ganancia_total >= 0 ? '+' : ''}${p.ganancia_total.toFixed(2)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="loading">Sin datos</td></tr>';
+
+  const top8 = data.slice(0, 8);
+  if (chartPares) chartPares.destroy();
+  chartPares = new Chart(document.getElementById('chart-pares'), {
+    type: 'bar',
+    data: {
+      labels: top8.map(p => p.par.replace('-OTC', '')),
+      datasets: [{
+        label: 'Ganancia',
+        data: top8.map(p => p.ganancia_total),
+        backgroundColor: top8.map(p => p.ganancia_total >= 0 ? 'rgba(0,255,136,0.7)' : 'rgba(255,51,102,0.7)'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 9 } }, grid: { display: false } },
+        y: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } }
+      }
+    }
+  });
+}
+
+async function loadHistorial() {
+  const res = await fetch('/api/historial?' + getParams());
+  const data = await res.json();
+  const tbody = document.getElementById('tabla-historial');
+  tbody.innerHTML = data.map(op => `
+    <tr>
+      <td style="color:var(--muted)">#${op.id}</td>
+      <td style="color:var(--muted)">${op.fecha.substring(0,16)}</td>
+      <td style="font-weight:600">${op.par}</td>
+      <td><span class="badge badge-${op.direccion.toLowerCase()}">${op.direccion}</span></td>
+      <td><span class="badge ${op.intento === 1 ? '' : 'badge-gale'}">${op.naturaleza}</span></td>
+      <td>${fmt(op.monto)}</td>
+      <td><span class="badge badge-${op.resultado === 'ganada' ? 'win' : op.resultado === 'perdida' ? 'loss' : 'draw'}">${op.resultado.toUpperCase()}</span></td>
+      <td class="${op.ganancia >= 0 ? 'positive' : 'negative'}">${op.ganancia >= 0 ? '+' : ''}${fmt(op.ganancia)}</td>
+      <td style="color:var(--muted)">${fmt(op.balance_antes)}</td>
+      <td style="color:var(--text)">${fmt(op.balance_despues)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="10" class="loading">Sin operaciones</td></tr>';
+}
+
+function aplicarFiltros() {
+  loadAll();
+}
+
+function resetFiltros() {
+  document.getElementById('fecha-desde').value = '';
+  document.getElementById('fecha-hasta').value = '';
+  document.getElementById('filtro-resultado').value = 'todas';
+  document.getElementById('filtro-naturaleza').value = 'todas';
+  loadAll();
+}
+
+async function loadAll() {
+  await Promise.all([loadStats(), loadEvolucion(), loadPares(), loadHistorial()]);
+  document.getElementById('last-update').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR');
+}
+
+// Auto-refresh cada 60 segundos
+loadAll();
+setInterval(loadAll, 60000);
+</script>
+</body>
+</html>
