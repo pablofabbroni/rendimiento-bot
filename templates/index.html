@@ -3,516 +3,523 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PTF Trading Dashboard</title>
+<title>PTF · Trading Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface2: #1a1a24;
-    --border: #2a2a3a;
-    --accent: #00ff88;
-    --accent2: #ff3366;
-    --accent3: #ffaa00;
-    --text: #e8e8f0;
-    --muted: #6b6b80;
-    --win: #00ff88;
-    --loss: #ff3366;
-    --draw: #ffaa00;
-  }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f5f4f0;
+  --white: #ffffff;
+  --text: #1a1a1a;
+  --muted: #8a8a8a;
+  --border: #e8e6e0;
+  --green: #1a7a4a;
+  --green-light: #e8f5ee;
+  --red: #c0392b;
+  --red-light: #fdecea;
+  --amber: #b45309;
+  --amber-light: #fef3e2;
+  --blue: #1e40af;
+  --blue-light: #eff6ff;
+  --accent: #1a1a1a;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    min-height: 100vh;
-    padding: 24px;
-  }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 40px 48px;
+}
 
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-  }
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
 
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
+.brand h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
 
-  .logo h1 {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
+.brand span {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
 
-  .logo span {
-    color: var(--accent);
-  }
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
 
-  .live-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-  }
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 2s infinite;
+}
 
-  .live-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+/* Filtros */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
 
-  /* Filtros */
-  .filters {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+}
 
-  .filter-label {
-    font-size: 12px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+.filter-pill label {
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
-  .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 12px;
-  }
+input[type="date"], select {
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
 
-  input[type="date"], select {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    outline: none;
-    cursor: pointer;
-  }
+.btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
 
-  select option { background: var(--surface2); }
+.btn-primary {
+  background: var(--text);
+  color: white;
+}
 
-  .btn-filter {
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
+.btn-primary:hover { opacity: 0.85; }
 
-  .btn-filter:hover { opacity: 0.85; }
+.btn-ghost {
+  background: var(--white);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
 
-  .btn-reset {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
+.btn-ghost:hover { color: var(--text); }
 
-  .btn-reset:hover { color: var(--text); border-color: var(--text); }
+/* Cards grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-  /* Cards */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 28px;
-  }
+.cards-bottom {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
 
-  .card:hover { border-color: var(--accent); }
+.card-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 12px;
+}
 
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--card-color, var(--accent));
-  }
+.card-value {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
 
-  .card-label {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-family: 'Space Mono', monospace;
-    margin-bottom: 12px;
-  }
+.card-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
 
-  .card-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--card-color, var(--text));
-    line-height: 1;
-    margin-bottom: 4px;
-  }
+.card.green { border-left: 3px solid var(--green); }
+.card.red { border-left: 3px solid var(--red); }
+.card.amber { border-left: 3px solid var(--amber); }
+.card.blue { border-left: 3px solid var(--blue); }
 
-  .card-sub {
-    font-size: 12px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-  }
+.val-green { color: var(--green); }
+.val-red { color: var(--red); }
+.val-amber { color: var(--amber); }
+.val-blue { color: var(--blue); }
 
-  .card-icon {
-    position: absolute;
-    top: 20px; right: 20px;
-    font-size: 24px;
-    opacity: 0.15;
-  }
+/* Progress bar */
+.progress-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
 
-  /* Charts row */
-  .charts-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 16px;
-    margin-bottom: 28px;
-  }
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--green);
+  transition: width 0.6s ease;
+}
 
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-  }
+/* Charts row */
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-  .chart-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
 
-  .chart-title span {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-weight: 400;
-  }
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 
-  /* Pares table */
-  .pares-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 28px;
-  }
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+}
 
-  .table-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    overflow: hidden;
-  }
+.panel-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
+/* Pares row */
+.pares-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-  th {
-    text-align: left;
-    padding: 8px 12px;
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--border);
-  }
+/* Table */
+table { width: 100%; border-collapse: collapse; }
 
-  td {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(42,42,58,0.5);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-  }
+thead th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
 
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
+tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
 
-  .badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'Space Mono', monospace;
-  }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
 
-  .badge-win { background: rgba(0,255,136,0.15); color: var(--win); }
-  .badge-loss { background: rgba(255,51,102,0.15); color: var(--loss); }
-  .badge-draw { background: rgba(255,170,0,0.15); color: var(--draw); }
-  .badge-call { background: rgba(0,255,136,0.1); color: var(--win); }
-  .badge-put { background: rgba(255,51,102,0.1); color: var(--loss); }
-  .badge-gale { background: rgba(255,170,0,0.1); color: var(--draw); }
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+}
 
-  .asert-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+.badge-win { background: var(--green-light); color: var(--green); }
+.badge-loss { background: var(--red-light); color: var(--red); }
+.badge-draw { background: var(--amber-light); color: var(--amber); }
+.badge-call { background: var(--green-light); color: var(--green); }
+.badge-put { background: var(--red-light); color: var(--red); }
+.badge-gale { background: var(--amber-light); color: var(--amber); }
 
-  .asert-fill {
-    height: 4px;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
+/* Asert bar */
+.asert-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  .asert-bg {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
+.asert-pct {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  min-width: 36px;
+}
 
-  /* Historial */
-  .historial-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    overflow-x: auto;
-  }
+.asert-track {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
 
-  .loading {
-    text-align: center;
-    padding: 40px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-  }
+.asert-fill {
+  height: 100%;
+  border-radius: 2px;
+}
 
-  .positive { color: var(--win); }
-  .negative { color: var(--loss); }
-  .neutral { color: var(--draw); }
+.mono { font-family: 'DM Mono', monospace; }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.muted { color: var(--muted); }
 
-  @media (max-width: 768px) {
-    .charts-row, .pares-grid { grid-template-columns: 1fr; }
-    .cards-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+.empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+}
+
+@media (max-width: 900px) {
+  body { padding: 20px; }
+  .cards, .cards-bottom { grid-template-columns: repeat(2, 1fr); }
+  .charts-row, .pares-row { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">
-    <div class="logo-icon">📊</div>
-    <h1>PTF <span>Trading</span> Dashboard</h1>
+<header>
+  <div class="brand">
+    <h1>PTF Trading</h1>
+    <span>dashboard v1.0</span>
   </div>
-  <div class="live-badge">
-    <div class="live-dot"></div>
-    <span id="last-update">Actualizando...</span>
+  <div class="status">
+    <div class="dot"></div>
+    <span id="last-update">—</span>
   </div>
-</div>
+</header>
 
 <!-- Filtros -->
 <div class="filters">
-  <span class="filter-label">Filtros:</span>
-  <div class="filter-group">
-    <span style="font-size:12px;color:var(--muted)">Desde</span>
+  <div class="filter-pill">
+    <label>Desde</label>
     <input type="date" id="fecha-desde">
   </div>
-  <div class="filter-group">
-    <span style="font-size:12px;color:var(--muted)">Hasta</span>
+  <div class="filter-pill">
+    <label>Hasta</label>
     <input type="date" id="fecha-hasta">
   </div>
-  <div class="filter-group">
+  <div class="filter-pill">
+    <label>Resultado</label>
     <select id="filtro-resultado">
-      <option value="todas">Todos los resultados</option>
+      <option value="todas">Todos</option>
       <option value="ganada">Ganadas</option>
       <option value="perdida">Perdidas</option>
       <option value="empate">Empates</option>
     </select>
   </div>
-  <div class="filter-group">
+  <div class="filter-pill">
+    <label>Entrada</label>
     <select id="filtro-naturaleza">
-      <option value="todas">Todas las entradas</option>
+      <option value="todas">Todas</option>
       <option value="principal">Principal</option>
       <option value="gale1">Gale 1</option>
       <option value="gale2">Gale 2</option>
     </select>
   </div>
-  <button class="btn-filter" onclick="aplicarFiltros()">Aplicar</button>
-  <button class="btn-reset" onclick="resetFiltros()">Reset</button>
+  <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar</button>
+  <button class="btn btn-ghost" onclick="resetFiltros()">Limpiar</button>
 </div>
 
-<!-- Cards -->
-<div class="cards-grid">
-  <div class="card" style="--card-color: #a78bfa">
-    <div class="card-icon">🔢</div>
+<!-- Cards row 1 -->
+<div class="cards">
+  <div class="card">
     <div class="card-label">Total Operaciones</div>
     <div class="card-value" id="c-total">—</div>
+    <div class="card-sub" id="c-ciclos">— ciclos</div>
   </div>
-  <div class="card" style="--card-color: var(--win)">
-    <div class="card-icon">✅</div>
+  <div class="card green">
     <div class="card-label">Ganadas</div>
-    <div class="card-value" id="c-ganadas">—</div>
+    <div class="card-value val-green" id="c-ganadas">—</div>
+    <div class="card-sub" id="c-ciclos-ganados">— ciclos ganados</div>
   </div>
-  <div class="card" style="--card-color: var(--loss)">
-    <div class="card-icon">❌</div>
+  <div class="card red">
     <div class="card-label">Perdidas</div>
-    <div class="card-value" id="c-perdidas">—</div>
+    <div class="card-value val-red" id="c-perdidas">—</div>
+    <div class="card-sub" id="c-ciclos-perdidos">— ciclos perdidos</div>
   </div>
-  <div class="card" style="--card-color: var(--draw)">
-    <div class="card-icon">➖</div>
-    <div class="card-label">Empates</div>
-    <div class="card-value" id="c-empates">—</div>
-  </div>
-  <div class="card" style="--card-color: #60a5fa">
-    <div class="card-icon">🎯</div>
+  <div class="card blue">
     <div class="card-label">Asertividad</div>
-    <div class="card-value" id="c-asert">—</div>
-    <div class="card-sub">% de operaciones ganadoras</div>
+    <div class="card-value val-blue" id="c-asert">—</div>
+    <div class="card-sub" id="c-asert-sub">por ciclo</div>
+    <div class="progress-bar"><div class="progress-fill" id="c-asert-bar" style="width:0%"></div></div>
   </div>
-  <div class="card" style="--card-color: #f472b6">
-    <div class="card-icon">💰</div>
+</div>
+
+<!-- Cards row 2 -->
+<div class="cards-bottom">
+  <div class="card amber">
     <div class="card-label">Volumen Operado</div>
-    <div class="card-value" id="c-volumen" style="font-size:20px">—</div>
+    <div class="card-value val-amber" id="c-volumen" style="font-size:22px">—</div>
     <div class="card-sub">USD total invertido</div>
   </div>
-  <div class="card" style="--card-color: var(--accent)">
-    <div class="card-icon">📈</div>
+  <div class="card">
     <div class="card-label">Capital Inicial</div>
-    <div class="card-value" id="c-capital-ini" style="font-size:20px">—</div>
+    <div class="card-value" id="c-cap-ini" style="font-size:22px">—</div>
   </div>
-  <div class="card" style="--card-color: var(--accent)">
-    <div class="card-icon">💎</div>
+  <div class="card">
     <div class="card-label">Capital Actual</div>
-    <div class="card-value" id="c-capital-act" style="font-size:20px">—</div>
-    <div class="card-sub" id="c-ganancia-total"></div>
+    <div class="card-value" id="c-cap-act" style="font-size:22px">—</div>
+    <div class="card-sub" id="c-ganancia"></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Empates</div>
+    <div class="card-value val-amber" id="c-empates">—</div>
+    <div class="card-sub" id="c-ciclos-empates">— ciclos</div>
   </div>
 </div>
 
 <!-- Charts -->
 <div class="charts-row">
-  <div class="chart-card">
-    <div class="chart-title">Evolución del Balance <span>diario</span></div>
-    <canvas id="chart-evolucion" height="120"></canvas>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Evolución del Balance</span>
+      <span class="panel-sub">diario</span>
+    </div>
+    <canvas id="chart-evolucion" height="100"></canvas>
   </div>
-  <div class="chart-card">
-    <div class="chart-title">Distribución <span>resultados</span></div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Distribución</span>
+      <span class="panel-sub">por resultado</span>
+    </div>
     <canvas id="chart-dist" height="200"></canvas>
   </div>
 </div>
 
 <!-- Pares -->
-<div class="pares-grid">
-  <div class="table-card">
-    <div class="chart-title">Efectividad por Par</div>
+<div class="pares-row">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Efectividad por Par</span>
+      <span class="panel-sub">% de ciclos ganados</span>
+    </div>
     <table>
       <thead>
         <tr>
           <th>Par</th>
-          <th>Ops</th>
+          <th>Ciclos</th>
           <th>Asertividad</th>
           <th>P&G</th>
         </tr>
       </thead>
       <tbody id="tabla-pares">
-        <tr><td colspan="4" class="loading">Cargando...</td></tr>
+        <tr><td colspan="4" class="empty">Sin datos</td></tr>
       </tbody>
     </table>
   </div>
-  <div class="chart-card">
-    <div class="chart-title">Ganancia por Par <span>top 8</span></div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Ganancia por Par</span>
+      <span class="panel-sub">top 8</span>
+    </div>
     <canvas id="chart-pares" height="220"></canvas>
   </div>
 </div>
 
 <!-- Historial -->
-<div class="historial-card">
-  <div class="chart-title" style="margin-bottom:20px">Historial de Operaciones <span>últimas 100</span></div>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Fecha</th>
-        <th>Par</th>
-        <th>Dir</th>
-        <th>Naturaleza</th>
-        <th>Monto</th>
-        <th>Resultado</th>
-        <th>P&G</th>
-        <th>Balance Antes</th>
-        <th>Balance Después</th>
-      </tr>
-    </thead>
-    <tbody id="tabla-historial">
-      <tr><td colspan="10" class="loading">Cargando...</td></tr>
-    </tbody>
-  </table>
+<div class="panel">
+  <div class="panel-header">
+    <span class="panel-title">Historial de Operaciones</span>
+    <span class="panel-sub">últimas 100</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Par</th>
+          <th>Dir</th>
+          <th>Entrada</th>
+          <th>Monto</th>
+          <th>Resultado</th>
+          <th>P&G</th>
+          <th>Bal. Antes</th>
+          <th>Bal. Después</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-historial">
+        <tr><td colspan="10" class="empty">Sin datos</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
 let chartEvol = null, chartDist = null, chartPares = null;
+
+const fmt = n => '$' + parseFloat(n).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
 function getParams() {
   const p = new URLSearchParams();
@@ -527,26 +534,32 @@ function getParams() {
   return p.toString();
 }
 
-function fmt(n) { return '$' + parseFloat(n).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
-
 async function loadStats() {
   const res = await fetch('/api/stats?' + getParams());
   const d = await res.json();
-  document.getElementById('c-total').textContent = d.total;
-  document.getElementById('c-ganadas').textContent = d.ganadas + ' ops / ' + d.ciclos_ganados + ' ciclos';
-  document.getElementById('c-perdidas').textContent = d.perdidas + ' ops / ' + d.ciclos_perdidos + ' ciclos';
-  document.getElementById('c-empates').textContent = d.empates + ' ops / ' + d.ciclos_empatados + ' ciclos';
-  document.getElementById('c-asert').textContent = d.asertividad + '%';
-  document.getElementById('c-asert').nextElementSibling.textContent = d.ciclos_ganados + '/' + d.total_ciclos + ' ciclos ganados';
-  document.getElementById('c-volumen').textContent = fmt(d.volumen);
-  document.getElementById('c-capital-ini').textContent = fmt(d.capital_inicial);
-  document.getElementById('c-capital-act').textContent = fmt(d.capital_actual);
-  const diff = d.capital_actual - d.capital_inicial;
-  const el = document.getElementById('c-ganancia-total');
-  el.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
-  el.className = 'card-sub ' + (diff >= 0 ? 'positive' : 'negative');
 
-  // Donut chart
+  document.getElementById('c-total').textContent = d.total;
+  document.getElementById('c-ciclos').textContent = d.total_ciclos + ' ciclos totales';
+  document.getElementById('c-ganadas').textContent = d.ganadas;
+  document.getElementById('c-ciclos-ganados').textContent = d.ciclos_ganados + ' ciclos ganados';
+  document.getElementById('c-perdidas').textContent = d.perdidas;
+  document.getElementById('c-ciclos-perdidos').textContent = d.ciclos_perdidos + ' ciclos perdidos';
+  document.getElementById('c-empates').textContent = d.empates;
+  document.getElementById('c-ciclos-empates').textContent = d.ciclos_empatados + ' ciclos';
+  document.getElementById('c-asert').textContent = d.asertividad + '%';
+  document.getElementById('c-asert-sub').textContent = d.ciclos_ganados + '/' + d.total_ciclos + ' ciclos ganados';
+  document.getElementById('c-asert-bar').style.width = d.asertividad + '%';
+  document.getElementById('c-asert-bar').style.background = d.asertividad >= 60 ? '#1a7a4a' : d.asertividad >= 40 ? '#b45309' : '#c0392b';
+  document.getElementById('c-volumen').textContent = fmt(d.volumen);
+  document.getElementById('c-cap-ini').textContent = fmt(d.capital_inicial);
+  document.getElementById('c-cap-act').textContent = fmt(d.capital_actual);
+
+  const diff = d.capital_actual - d.capital_inicial;
+  const ganEl = document.getElementById('c-ganancia');
+  ganEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff);
+  ganEl.className = 'card-sub ' + (diff >= 0 ? 'pos' : 'neg');
+
+  // Donut
   if (chartDist) chartDist.destroy();
   chartDist = new Chart(document.getElementById('chart-dist'), {
     type: 'doughnut',
@@ -554,17 +567,17 @@ async function loadStats() {
       labels: ['Ganadas', 'Perdidas', 'Empates'],
       datasets: [{
         data: [d.ganadas, d.perdidas, d.empates],
-        backgroundColor: ['rgba(0,255,136,0.8)', 'rgba(255,51,102,0.8)', 'rgba(255,170,0,0.8)'],
+        backgroundColor: ['#1a7a4a', '#c0392b', '#b45309'],
         borderWidth: 0,
-        hoverOffset: 8
+        hoverOffset: 6
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { labels: { color: '#6b6b80', font: { family: 'Space Mono', size: 11 } } }
+        legend: { labels: { color: '#8a8a8a', font: { family: 'DM Sans', size: 12 }, padding: 16 } }
       },
-      cutout: '70%'
+      cutout: '72%'
     }
   });
 }
@@ -580,30 +593,33 @@ async function loadEvolucion() {
       datasets: [{
         label: 'Balance',
         data: data.map(d => d.balance),
-        borderColor: '#00ff88',
-        backgroundColor: 'rgba(0,255,136,0.05)',
+        borderColor: '#1a1a1a',
+        backgroundColor: 'rgba(26,26,26,0.04)',
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: '#00ff88',
-        pointRadius: 4
+        pointBackgroundColor: '#1a1a1a',
+        pointRadius: 3,
+        borderWidth: 1.5
       }, {
-        label: 'Ganancia del día',
+        label: 'Ganancia diaria',
         data: data.map(d => d.ganancia),
-        borderColor: '#a78bfa',
-        backgroundColor: 'rgba(167,139,250,0.05)',
+        borderColor: '#1a7a4a',
+        backgroundColor: 'transparent',
         tension: 0.4,
         fill: false,
-        pointRadius: 3
+        pointRadius: 2,
+        borderWidth: 1.5,
+        borderDash: [4, 3]
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { labels: { color: '#6b6b80', font: { family: 'Space Mono', size: 11 } } }
+        legend: { labels: { color: '#8a8a8a', font: { family: 'DM Sans', size: 12 }, padding: 16 } }
       },
       scales: {
-        x: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } },
-        y: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } }
+        x: { ticks: { color: '#8a8a8a', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#f0eeea' } },
+        y: { ticks: { color: '#8a8a8a', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#f0eeea' } }
       }
     }
   });
@@ -613,19 +629,21 @@ async function loadPares() {
   const res = await fetch('/api/pares?' + getParams());
   const data = await res.json();
   const tbody = document.getElementById('tabla-pares');
-  tbody.innerHTML = data.map(p => `
-    <tr>
-      <td style="font-weight:600;color:var(--text)">${p.par}</td>
-      <td>${p.total}</td>
+
+  tbody.innerHTML = data.length ? data.map(p => {
+    const color = p.asertividad >= 60 ? '#1a7a4a' : p.asertividad >= 40 ? '#b45309' : '#c0392b';
+    return `<tr>
+      <td class="mono" style="font-weight:500">${p.par}</td>
+      <td class="muted mono">${p.total}</td>
       <td>
-        <div class="asert-bar">
-          <span style="color:${p.asertividad >= 60 ? 'var(--win)' : p.asertividad >= 40 ? 'var(--draw)' : 'var(--loss)'};min-width:40px">${p.asertividad}%</span>
-          <div class="asert-bg"><div class="asert-fill" style="width:${p.asertividad}%;background:${p.asertividad >= 60 ? 'var(--win)' : p.asertividad >= 40 ? 'var(--draw)' : 'var(--loss)'}"></div></div>
+        <div class="asert-row">
+          <span class="asert-pct" style="color:${color}">${p.asertividad}%</span>
+          <div class="asert-track"><div class="asert-fill" style="width:${p.asertividad}%;background:${color}"></div></div>
         </div>
       </td>
-      <td class="${p.ganancia_total >= 0 ? 'positive' : 'negative'}">${p.ganancia_total >= 0 ? '+' : ''}${p.ganancia_total.toFixed(2)}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="4" class="loading">Sin datos</td></tr>';
+      <td class="${p.ganancia_total >= 0 ? 'pos' : 'neg'} mono">${p.ganancia_total >= 0 ? '+' : ''}${p.ganancia_total.toFixed(2)}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="4" class="empty">Sin datos</td></tr>';
 
   const top8 = data.slice(0, 8);
   if (chartPares) chartPares.destroy();
@@ -634,18 +652,19 @@ async function loadPares() {
     data: {
       labels: top8.map(p => p.par.replace('-OTC', '')),
       datasets: [{
-        label: 'Ganancia',
         data: top8.map(p => p.ganancia_total),
-        backgroundColor: top8.map(p => p.ganancia_total >= 0 ? 'rgba(0,255,136,0.7)' : 'rgba(255,51,102,0.7)'),
-        borderRadius: 6
+        backgroundColor: top8.map(p => p.ganancia_total >= 0 ? 'rgba(26,122,74,0.15)' : 'rgba(192,57,43,0.15)'),
+        borderColor: top8.map(p => p.ganancia_total >= 0 ? '#1a7a4a' : '#c0392b'),
+        borderWidth: 1,
+        borderRadius: 4
       }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 9 } }, grid: { display: false } },
-        y: { ticks: { color: '#6b6b80', font: { family: 'Space Mono', size: 10 } }, grid: { color: '#1a1a24' } }
+        x: { ticks: { color: '#8a8a8a', font: { family: 'DM Mono', size: 9 } }, grid: { display: false } },
+        y: { ticks: { color: '#8a8a8a', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#f0eeea' } }
       }
     }
   });
@@ -655,25 +674,23 @@ async function loadHistorial() {
   const res = await fetch('/api/historial?' + getParams());
   const data = await res.json();
   const tbody = document.getElementById('tabla-historial');
-  tbody.innerHTML = data.map(op => `
+  tbody.innerHTML = data.length ? data.map(op => `
     <tr>
-      <td style="color:var(--muted)">#${op.id}</td>
-      <td style="color:var(--muted)">${op.fecha.substring(0,16)}</td>
-      <td style="font-weight:600">${op.par}</td>
+      <td class="muted mono" style="font-size:11px">${op.id}</td>
+      <td class="muted mono" style="font-size:11px">${op.fecha.substring(0,16)}</td>
+      <td class="mono" style="font-weight:500;font-size:12px">${op.par}</td>
       <td><span class="badge badge-${op.direccion.toLowerCase()}">${op.direccion}</span></td>
-      <td><span class="badge ${op.intento === 1 ? '' : 'badge-gale'}">${op.naturaleza}</span></td>
-      <td>${fmt(op.monto)}</td>
+      <td><span class="badge ${op.intento === 1 ? '' : 'badge-gale'}" style="${op.intento === 1 ? 'background:#f5f4f0;color:#8a8a8a' : ''}">${op.naturaleza}</span></td>
+      <td class="mono" style="font-size:12px">${fmt(op.monto)}</td>
       <td><span class="badge badge-${op.resultado === 'ganada' ? 'win' : op.resultado === 'perdida' ? 'loss' : 'draw'}">${op.resultado.toUpperCase()}</span></td>
-      <td class="${op.ganancia >= 0 ? 'positive' : 'negative'}">${op.ganancia >= 0 ? '+' : ''}${fmt(op.ganancia)}</td>
-      <td style="color:var(--muted)">${fmt(op.balance_antes)}</td>
-      <td style="color:var(--text)">${fmt(op.balance_despues)}</td>
+      <td class="${op.ganancia >= 0 ? 'pos' : 'neg'} mono" style="font-size:12px">${op.ganancia >= 0 ? '+' : ''}${fmt(op.ganancia)}</td>
+      <td class="muted mono" style="font-size:11px">${fmt(op.balance_antes)}</td>
+      <td class="mono" style="font-size:12px">${fmt(op.balance_despues)}</td>
     </tr>
-  `).join('') || '<tr><td colspan="10" class="loading">Sin operaciones</td></tr>';
+  `).join('') : '<tr><td colspan="10" class="empty">Sin operaciones registradas</td></tr>';
 }
 
-function aplicarFiltros() {
-  loadAll();
-}
+function aplicarFiltros() { loadAll(); }
 
 function resetFiltros() {
   document.getElementById('fecha-desde').value = '';
@@ -685,10 +702,9 @@ function resetFiltros() {
 
 async function loadAll() {
   await Promise.all([loadStats(), loadEvolucion(), loadPares(), loadHistorial()]);
-  document.getElementById('last-update').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR');
+  document.getElementById('last-update').textContent = 'actualizado ' + new Date().toLocaleTimeString('es-AR');
 }
 
-// Auto-refresh cada 60 segundos
 loadAll();
 setInterval(loadAll, 60000);
 </script>
