@@ -533,10 +533,11 @@ async function loadStats() {
   const res = await fetch('/api/stats?' + getParams());
   const d = await res.json();
   document.getElementById('c-total').textContent = d.total;
-  document.getElementById('c-ganadas').textContent = d.ganadas;
-  document.getElementById('c-perdidas').textContent = d.perdidas;
-  document.getElementById('c-empates').textContent = d.empates;
+  document.getElementById('c-ganadas').textContent = d.ganadas + ' ops / ' + d.ciclos_ganados + ' ciclos';
+  document.getElementById('c-perdidas').textContent = d.perdidas + ' ops / ' + d.ciclos_perdidos + ' ciclos';
+  document.getElementById('c-empates').textContent = d.empates + ' ops / ' + d.ciclos_empatados + ' ciclos';
   document.getElementById('c-asert').textContent = d.asertividad + '%';
+  document.getElementById('c-asert').nextElementSibling.textContent = d.ciclos_ganados + '/' + d.total_ciclos + ' ciclos ganados';
   document.getElementById('c-volumen').textContent = fmt(d.volumen);
   document.getElementById('c-capital-ini').textContent = fmt(d.capital_inicial);
   document.getElementById('c-capital-act').textContent = fmt(d.capital_actual);

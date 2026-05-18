@@ -54,13 +54,13 @@ def stats():
     c = conn.cursor(dictionary=True)
     where, params = build_filters(request.args)
 
-    # Totales
+    # Totales de operaciones individuales
     c.execute(f"SELECT COUNT(*) as total, SUM(monto) as volumen FROM operaciones {where}", params)
     row = c.fetchone()
     total = row['total'] or 0
     volumen = float(row['volumen'] or 0)
 
-    # Por resultado
+    # Por resultado individual
     c.execute(f"SELECT resultado, COUNT(*) as cnt, SUM(ganancia) as suma FROM operaciones {where} GROUP BY resultado", params)
     resultados = {r['resultado']: {'cnt': r['cnt'], 'suma': float(r['suma'] or 0)} for r in c.fetchall()}
 
@@ -68,7 +68,25 @@ def stats():
     perdidas = resultados.get('perdida', {}).get('cnt', 0)
     empates = resultados.get('empate', {}).get('cnt', 0)
     ganancia_total = sum(r['suma'] for r in resultados.values())
-    asertividad = round((ganadas / total * 100), 1) if total > 0 else 0
+
+    # Asertividad por CICLO
+    # Un ciclo gana si alguna operacion del ciclo gano
+    # Un ciclo pierde solo si todas las operaciones del ciclo perdieron
+    where_ciclo = where.replace('WHERE', 'WHERE') if where else 'WHERE'
+    c.execute(f"""
+        SELECT ciclo_id,
+               MAX(CASE WHEN resultado = 'ganada' THEN 1 ELSE 0 END) as ciclo_gano,
+               MAX(CASE WHEN resultado = 'empate' THEN 1 ELSE 0 END) as ciclo_empato
+        FROM operaciones
+        {where}
+        GROUP BY ciclo_id
+    """, params)
+    ciclos = c.fetchall()
+    total_ciclos = len(ciclos)
+    ciclos_ganados = sum(1 for c2 in ciclos if c2['ciclo_gano'])
+    ciclos_empatados = sum(1 for c2 in ciclos if not c2['ciclo_gano'] and c2['ciclo_empato'])
+    ciclos_perdidos = total_ciclos - ciclos_ganados - ciclos_empatados
+    asertividad = round((ciclos_ganados / total_ciclos * 100), 1) if total_ciclos > 0 else 0
 
     # Capital inicial y actual
     c.execute(f"SELECT balance_antes FROM operaciones {where} ORDER BY id ASC LIMIT 1", params)
@@ -82,9 +100,13 @@ def stats():
     conn.close()
     return jsonify({
         'total': total,
+        'total_ciclos': total_ciclos,
         'ganadas': ganadas,
         'perdidas': perdidas,
         'empates': empates,
+        'ciclos_ganados': ciclos_ganados,
+        'ciclos_perdidos': ciclos_perdidos,
+        'ciclos_empatados': ciclos_empatados,
         'asertividad': asertividad,
         'volumen': round(volumen, 2),
         'ganancia_total': round(ganancia_total, 2),
